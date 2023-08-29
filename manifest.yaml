@@ -1,0 +1,53 @@
+---
+# Home region for CodePipeline, StepFunctions, Lambda, SSM, StackSets
+region: eu-central-1  # Control Tower Home Region
+version: 2021-03-15
+
+resources:
+  # ControlTower Custom SCPs - Additional Preventive Guardrails
+  - name: test-preventive-guardrails
+    description: Prevent deleting or disabling resources in member accounts
+    resource_file: s3://marketplace-sa-resources-ct-eu-central-1/ctlabs/preventive-guardrails.json
+    deploy_method: scp
+    # Apply to the following OU(s)
+    deployment_targets:
+      organizational_units:
+        # New Essential OU names since ControlTower v2.7 April 16.
+        # Observe the names of your existing OUs and comment out or uncomment below to match yours.
+        - Security # Foremerly Core
+        - Sandbox # Formerly Custom
+        #- Core
+        #- Custom
+
+  # ControlTower Custom CFN Resources - Create Additional IAM Role
+  - name: create-iam-role
+    resource_file: s3://marketplace-sa-resources-ct-eu-central-1/ctlabs/describe-regions-iam-role.template
+    deploy_method: stack_set
+    deployment_targets:
+      organizational_units:
+        # New Essential OU names since ControlTower v2.7 April 16.
+        # Observe the names of your existing OUs and comment out or uncomment these to match yours.
+        - Security # Foremerly Core
+        - Sandbox # Formerly Custom
+        #- Core
+        #- Custom
+    regions:
+      - eu-central-1
+
+  # ControlTower Config Rule - Additional Detective Guardrails
+  - name: rotate-access-keys-guardrail
+    resource_file: s3://marketplace-sa-resources-ct-eu-central-1/ctlabs/access_keys_rotated.template
+    parameters:
+      - parameter_key: maxAccessKeyAge
+        parameter_value: '24'
+    deploy_method: stack_set
+    deployment_targets:
+      organizational_units:
+        # New Essential OU names since ControlTower v2.7 April 16.
+        # Observe the names of your existing OUs and comment out or uncomment these to match yours.
+        - Security # Foremerly Core
+        - Sandbox # Formerly Custom
+        #- Core
+        #- Custom
+    regions:
+      - eu-central-1
